@@ -17,7 +17,7 @@ message('Directory created at ./data')
 ## Extract files
 if(file.exists(zippath)) {
   # Get path names of data files
-  zipped_data_names <- grep('/((subject|X|y)_t(.+)|features).txt$', 
+  zipped_data_names <- grep('/((subject|X|y)_t(.+)|features|activity_labels).txt$', 
                             unzip(zippath, list = TRUE)$Name, 
                             ignore.case = TRUE, value = TRUE)
   # Extract only data files
@@ -31,9 +31,15 @@ if(file.exists(zippath)) {
 # Load Datasets
 message('Loading data')
 dirList <- list.files('./data', recursive=TRUE)
-features <- read.table(file.path('./data/', dirList[1]),
+activity_labels <- read.table(file.path('./data/', dirList[1]),
+                              stringsAsFactors = F, 
+                              col.names = c("activity_num", 
+                                            "activity_name"))
+message('...file activity_labels.txt loaded sucessfuly')
+features <- read.table(file.path('./data/', dirList[2]),
                        stringsAsFactors = F)
-for(dataFile in dirList[-1]){
+message('...file features.txt loaded sucessfuly')
+for(dataFile in dirList[-(1:2)]){
   txtFile <- file.path('./data/', dataFile)
   fileName <- strsplit(dataFile, '(st|in)\\/|\\.txt')[[1]][2]
   eval(parse(text = paste(fileName, '<- read.table(txtFile)')))
@@ -47,16 +53,29 @@ data_train <- cbind(subject_train, X_train, y_train)
 data_test <- cbind(subject_test, X_test, y_test)
 data <- rbind(data_train, data_test)
 colnames(data) <- c('subject', features$V2, 'activity_num')
+message('Files merged')
 
 # 2. Extracts only the measurements on the mean and 
 # standard deviation for each measurement.
-data <- data[, which(grepl("(mean|std)\\(\\)", colnames(data)))]
+data <- data[, which(grepl("(subject|activity)|(mean|std)\\(\\)", 
+                           colnames(data)))]
+message('Extracted measurements that contains mean and std')
 
 # 3. Uses descriptive activity names to name the 
 # activities in the data set
+data <- merge(data, activity_labels, 
+              by = "activity_num", all.x = TRUE)
+message('Apply descriptive names to dataset')
+
+# 4. Appropriately labels the data set with descriptive 
+# variable names. 
+data %>%
+  select(subject, activity_num, activity_name, 
+         `tBodyAcc-mean()-X`:`fBodyBodyGyroJerkMag-std()`) %>%
+  gather(variablelist, value, -c(subject, activity_num, activity_name)) %>%
+  mutate(dimension = str_split(variablelist, "^(f|t)"))
 
 
-
-
+#strsplit(gsub("^((f|t)(Body|BodyBody|Gravity)(Gyro|Acc|Body)[\\-]*(Jerk)?(Mag)?[\\-]*(mean|std)[\\(\\)\\-]*(X|Y|Z)?)", "\\2|\\3|\\4|\\5|\\6|\\7|\\8|\\1", a$variablelist), "\\|")
 
 
