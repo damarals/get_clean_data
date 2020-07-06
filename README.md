@@ -22,7 +22,7 @@ https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Datas
 
 ***Good luck!***
 
-### The Repository
+## The Repository
 
 ```bash
 $ tree
@@ -32,4 +32,19 @@ $ tree
 `-- run_analysis.R
 ```
 
+## Executing
 
+### required packages
+* dplyr
+* stringr
+* tidyr
+* utils
+
+### set working dir
+* Script creates a relative `./data` dir in which it downloads the .zip, extracts it, and writes the result files (`finalData.txt` and `tidyData.txt`).
+
+### run `run_analysis.R`
+* writes data to `./data` dir
+* generates `./CodeBook.md`
+* `source('run_analysis.R')`
+* global variables `tidyData` & `finalData` (see `CodeBook.md`)
